@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+from ufl import *
+set_level(DEBUG)
+#
+# The bilinear form a(u, v) for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space CG-P1 DG-P0
+cell = tetrahedron
+V = FiniteElement("CG", cell, 1)
+K = FiniteElement("DG", cell, 0)
+
+# Trial and test functions
+v = TestFunction(V)
+
+# Coefficient functions
+c = Coefficient(K)
+uf = Coefficient(V)     
+k = constant(cell)
+
+# leap-frog
+# bilinear form and linear form
+#F = (u - 2*u1 + u2) * v * dx \
+#  + k**2 * inner(c * grad(u1), grad(v)) * dx \
+#  - k**2 * f * v * dx \
+#  - k**2 * g * v * ds  
+#a = lhs(F)
+#L = rhs(F)
+
+L = -  k**2 * inner(c * grad(uf), grad(v)) * dx
+

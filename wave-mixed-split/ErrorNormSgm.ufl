@@ -1,0 +1,22 @@
+#
+# The mass matrix of mixed method for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space
+cell = triangle
+V = VectorElement("DG", cell, 2)
+
+# Trial and test functions
+#(sigma, u) = TrialFunctions(W)
+#(tau, v) = TestFunctions(W)
+
+# Coefficient functions
+e = Coefficient(V)
+
+F = inner(e,e)*dx
+
+
+
+

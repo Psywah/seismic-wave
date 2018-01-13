@@ -1,0 +1,36 @@
+#
+# The stiffness matrix of mixed method for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space 
+cell = triangle
+#cell = tetrahedron 
+V = FiniteElement("DG", cell, 1)
+Q = VectorElement("DG", cell, 2)
+W = Q * V
+
+# Trial and test functions
+(sigma, u) = TrialFunctions(W)
+(tau, v) = TestFunctions(W)
+
+# Normal component, cell size and right-hand side
+h = 2.0*Circumradius(triangle)
+#h = 2.0*Circumradius(tetrahedron)
+h_avg = (h('+') + h('-'))/2
+n = FacetNormal(triangle)
+#n = FacetNormal(tetrahedron)
+
+# parameters
+gamma = 1.0
+f = Coefficient(V)
+
+
+# bilinear form
+a = - u*div(tau)*dx + div(sigma)*v*dx \
+    - gamma/h_avg* jump(sigma, n) * jump(tau, n)*dS\
+    + avg(u)*jump(tau,n)*dS - avg(v)*jump(sigma, n)*dS
+
+L = f * v* dx
+

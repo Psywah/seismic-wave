@@ -1,0 +1,25 @@
+#
+# The bilinear form a(u, v) for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space CG-P1 DG-P0
+cell = tetrahedron
+K = FiniteElement("CG", cell, 4)
+Q = VectorElement("DG", cell, 1)
+V = FiniteElement("DG", cell, 0)
+W = Q*V
+
+# Trial and test functions
+(sgm, v) = TestFunctions(W)
+
+# Coefficient functions
+c = Coefficient(V)
+c0 = Constant(cell)
+f = Coefficient(K)     
+
+k = (c**2 - c0**2)/c0**2
+
+L =  k*f*v*dx
+

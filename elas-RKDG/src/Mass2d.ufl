@@ -1,0 +1,37 @@
+#
+# The mass matrix of mixed method for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space
+cell = triangle
+#cell = tetrahedron 
+V = VectorElement("DG", cell, 1)
+Q = TensorElement("DG", cell, 2, symmetry=True)
+V_coeff = FiniteElement("DG", cell, 0)
+W = Q * V
+
+# Trial and test functions
+(sigma, u) = TrialFunctions(W)
+(tau, v) = TestFunctions(W)
+
+# Coefficient functions
+c = Coefficient(V_coeff)
+lam = Coefficient(V_coeff)
+mu = Coefficient(V_coeff)
+rho = Coefficient(V_coeff)
+
+d = cell.geometric_dimension()
+I = Identity(d)
+
+#def stiff_action(lam, mu, u):
+#    return mu*(grad(u) + grad(u).T) + lam* div(u)*I
+
+def compliance_action(lam, mu, sigma):
+    return  (sigma - tr(sigma)*lam/(d*lam+mu)*I)/mu
+
+
+# bilinear form
+a = inner(compliance_action(lam,mu,sigma), tau) *dx + rho*inner(u, v) *dx
+

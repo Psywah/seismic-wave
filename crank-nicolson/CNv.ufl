@@ -1,0 +1,36 @@
+#
+# The bilinear form a(u, v) for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space CG-P1 DG-P0
+cell = tetrahedron
+V = FiniteElement("CG", cell, 1)
+K = FiniteElement("DG", cell, 0)
+
+# Trial and test functions
+v = TrialFunction(V)
+psi = TestFunction(V)
+
+# Coefficient functions
+c = Coefficient(K)
+u = Coefficient(V)
+u1 = Coefficient(V)     # u in last step 
+v1 = Coefficient(V)     # u in last two step 
+k = Constant(cell)      # length of time step 
+eta = Constant(cell)
+
+# body force and traction (Neumann BC) 
+f1 = Coefficient(V)
+f2 = Coefficient(V)
+#g = Coefficient(V)      # g = c*\frac{du}{dn}
+
+# crank-nicolson
+a = v * psi * dx 
+
+L = v1*psi*dx - k*((1-eta)*inner(c*grad(u1), grad(psi)))*dx\
+              - k*(eta*inner(c*grad(u), grad(psi)))*dx\
+     +k*(eta*f1*psi + (1-eta)*f2*psi)*dx
+
+

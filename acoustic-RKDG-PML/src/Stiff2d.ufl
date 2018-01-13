@@ -1,0 +1,54 @@
+#
+# The stiffness matrix of mixed method for wave equation
+#
+# Compile this form with FFC: ffc -l dolfin -f split -O *.ufl
+#
+
+# Define function space 
+cell = triangle
+#cell = tetrahedron 
+V = FiniteElement("DG", cell, 1)
+Q = VectorElement("DG", cell, 2)
+V_coeff = FiniteElement("DG", cell, 0)
+Q_coeff = VectorElement("DG", cell, 0)
+W = MixedElement(Q,V,Q,V)
+
+# Trial and test functions
+(sigma, u, sigma1, u1) = TrialFunctions(W)
+(tau, v, tau1, v1) = TestFunctions(W)
+
+# Normal component, cell size and right-hand side
+h = 2.0*Circumradius(cell)
+h_avg = (h('+') + h('-'))/2
+n = FacetNormal(cell)
+
+# parameters
+gamma = 1.0
+f = Coefficient(V)
+d = Coefficient(V)
+c = Coefficient(V_coeff)
+n_pml = Coefficient(Q_coeff)
+
+n1 = n - inner(n_pml,n)*n_pml
+onev = as_vector([1,1])
+ndiv = onev - inner(onev,n_pml)*n_pml
+#dxpml = dx(2)+dx(3)+dx(4)+dx(5)
+dxpml = dx(2)
+
+
+# bilinear form
+#a = - u*div(tau)*dx + div(sigma)*v*dx \
+#    - gamma/h_avg* jump(sigma, n) * jump(tau, n)*dS\
+#    + avg(u)*jump(tau,n)*dS - avg(v)*jump(sigma, n)*dS
+a = - u*div(tau)*dx + div(sigma)*v*dx \
+    - gamma* jump(sigma, n) * jump(tau, n)*dS\
+    + avg(u)*jump(tau,n)*dS - avg(v)*jump(sigma, n)*dS\
+    - (d*(u-u1)*v)*dxpml - inner(d/c/c*(sigma-sigma1), tau)*dxpml\
+    - u1*(ndiv[1]* Dx(tau1[1],1)+ ndiv[0]*Dx(tau1[0],0))*dxpml\
+    + v1*(ndiv[1]* Dx(sigma1[1],1)+ ndiv[0]*Dx(sigma1[0],0))*dxpml\
+    - gamma* jump(sigma1, n1) * jump(tau1, n1)*dS\
+    + avg(u1)*jump(tau1,n1)*dS - avg(v1)*jump(sigma1, n1)*dS
+
+
+L = f * v* dx
+
